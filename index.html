@@ -32,7 +32,7 @@
   let pokemonImage = document.getElementById('pokemonImage');
 
   // ポケモンは現在898種
-  let pokemonNumber = Math.floor(Math.random() * 898) + 1;
+  let pokemonNumber = Math.floor(Math.random() * 500) + 1;
  
   // PokéAPIからデータを取得し、名前と画像を表示
   fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonNumber}`)
@@ -61,7 +61,7 @@
     })
       return fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonNumber}`);
     })
-    
+
     .catch(function(error) {
       // エラーが発生した場合はコンソールに出力
       console.error(`エラーが発生しました:${error}`);
