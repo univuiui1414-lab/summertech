@@ -46,7 +46,7 @@
     let userGuess = Number(guessField.value);
 
     if (userGuess === answerNumber) { // ユーザの入力が正解
-      guessResult.textContent = '正解です！';
+      guessResult.textContent = 'correct!!';
     } else if (userGuess < answerNumber) { // ユーザの入力が正解より小さい
       guessResult.textContent = 'もっと大きいです';
     } else if (userGuess > answerNumber) { // ユーザの入力が正解より大きい
