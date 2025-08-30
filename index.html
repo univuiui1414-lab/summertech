@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="ja">
 <head>
   <title>ポケモンクイズ</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
@@ -83,3 +85,104 @@
     }
   </style>
 </head>
+<body>
+
+<main class="container">
+  <h1>🦊 ポケモンクイズ 🦊</h1>
+  
+  <div id="pokemon">
+    <h2 id="pokemonName">？？？</h2>
+    <p id="pokemonEnglishName"></p>
+    <img id="pokemonImage" src="">
+    <button id="newPokemon">ほかのポケモン！</button>
+
+    <div id="quiz">
+      もんだい！
+      <br> このポケモンの名前はなんでしょう？
+      <br>
+      <button id="showAnswer">こたえをみる</button>
+      <p id="answer"></p>
+    </div>
+  </div>
+</main>
+
+<script>
+  const pokemonName = document.getElementById('pokemonName');
+  const pokemonNameEnglish = document.getElementById('pokemonEnglishName');
+  const pokemonImage = document.getElementById('pokemonImage');
+  const answer = document.getElementById('answer');
+  const btnNew = document.getElementById('newPokemon');       // ★
+  const btnAnswer = document.getElementById('showAnswer');    // ★
+
+  async function loadPokemon() {
+    try {
+      let pokemonNumber = Math.floor(Math.random() * 25) + 1;
+
+      // 基本データ
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonNumber}`);
+      const data = await res.json();
+
+      // ★ 画像はプリロードしてから差し替え → 毎回フェードイン
+      const url = data.sprites.front_default || "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
+      pokemonImage.classList.remove('fade-in');       // リセット
+      const pre = new Image();
+      pre.onload = () => {
+        pokemonImage.src = url;
+        // レイアウト確定後にフェードイン（再生を確実にするテクニック）
+        requestAnimationFrame(() => pokemonImage.classList.add('fade-in'));
+      };
+      pre.src = url;
+
+      // 名前データ
+      const res2 = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonNumber}`);
+      const speciesData = await res2.json();
+
+      let japaneseName = speciesData.names.find(n => n.language.name === "ja-Hrkt")
+                       || speciesData.names.find(n => n.language.name === "ja");
+      let englishName = speciesData.names.find(n => n.language.name === "en");
+
+      if (japaneseName) {
+        pokemonName.textContent = "？？？"; // クイズ用に隠す
+        answer.textContent = japaneseName.name;
+      } else {
+        pokemonName.textContent = "(日本語名なし)";
+        answer.textContent = "";
+      }
+
+      pokemonNameEnglish.textContent = englishName ? `English: ${englishName.name}` : "(英語名なし)";
+
+      // ★ 答えは非表示＆アニメーションの状態リセット
+      answer.classList.remove("reveal");
+      pokemonName.classList.remove("pop");
+      // 強制再計算で次回アニメを確実に再生
+      void pokemonName.offsetWidth;
+    } catch (error) {
+      console.error("エラー:", error);
+      pokemonName.textContent = "ポケモンが見つかりませんでした";
+    }
+  }
+
+  // 初回ロード
+  loadPokemon();
+
+  // ★ ボタンの弾むアニメ
+  function bounceOnce(e) {
+    const btn = e.currentTarget;
+    btn.classList.remove('bounce');
+    void btn.offsetWidth;    // アニメ再始動の小技
+    btn.classList.add('bounce');
+  }
+  btnNew.addEventListener("click", (e) => { bounceOnce(e); loadPokemon(); });
+  btnAnswer.addEventListener("click", (e) => {
+    bounceOnce(e);
+    // 答え表示（名前見出しをポップ表示）
+    answer.classList.add("reveal");
+    pokemonName.textContent = answer.textContent;
+    pokemonName.classList.remove("pop");
+    void pokemonName.offsetWidth; // 再始動
+    pokemonName.classList.add("pop");
+  });
+</script>
+
+</body>
+</html>
