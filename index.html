@@ -51,8 +51,17 @@
       pokemonName.textContent = data.name;
 
       // ポケモンの画像を表示
-      pokemonImage.src = data.sprites.front_default;
+      pokemonImage.src = data.sprites.front_default;.then(response => response.json())
+      .then(speciesData => {const japaneseName = speciesData.names.find(n => n.language.name === "ja-Hrkt");
+      if (japaneseName) {
+        pokemonName.textContent = japaneseName.name;
+      } else {
+        pokemonName.textContent = "(日本語名なし)";
+      }
     })
+      return fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonNumber}`);
+    })
+    
     .catch(function(error) {
       // エラーが発生した場合はコンソールに出力
       console.error(`エラーが発生しました:${error}`);
