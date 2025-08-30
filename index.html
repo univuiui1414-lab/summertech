@@ -9,13 +9,11 @@
       text-align: center;
       font-family: "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
     }
-
     h1 {
       font-size: 2.5em;
       color: #ff4500;
       text-shadow: 2px 2px 0px #fff;
     }
-
     #pokemon {
       width: 320px;
       margin: auto;
@@ -24,17 +22,14 @@
       padding: 20px;
       box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
     }
-
     #pokemonName {
       font-size: 2em;
       color: #228b22;
     }
-
     #pokemonEnglishName {
       font-size: 1.2em;
       color: #555;
     }
-
     #pokemonImage {
       width: 80%;
       margin: 10px auto;
@@ -43,7 +38,6 @@
       border-radius: 15px;
       padding: 10px;
     }
-
     button {
       font-size: 1.2em;
       padding: 10px 20px;
@@ -54,17 +48,14 @@
       cursor: pointer;
       margin-top: 15px;
     }
-
     button:hover {
       background: #ff1493;
     }
-
     #quiz {
       margin-top: 20px;
       font-size: 1.2em;
       color: #333;
     }
-
     #answer {
       margin-top: 10px;
       font-weight: bold;
@@ -93,45 +84,50 @@
 </main>
 
 <script>
-  let pokemonName = document.getElementById('pokemonName');
-  let pokemonNameEnglish = document.getElementById('pokemonEnglishName');
-  let pokemonImage = document.getElementById('pokemonImage');
-  let answer = document.getElementById('answer');
+  const pokemonName = document.getElementById('pokemonName');
+  const pokemonNameEnglish = document.getElementById('pokemonEnglishName');
+  const pokemonImage = document.getElementById('pokemonImage');
+  const answer = document.getElementById('answer');
 
-  function loadPokemon() {
-    let pokemonNumber = Math.floor(Math.random() * 25) + 1;
+  async function loadPokemon() {
+    try {
+      let pokemonNumber = Math.floor(Math.random() * 25) + 1;
 
-    fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonNumber}`)
-      .then(response => response.json())
-      .then(data => {
-        pokemonImage.src = data.sprites.front_default;
+      // 基本データ
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonNumber}`);
+      const data = await res.json();
 
-        return fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonNumber}`);
-      })
-      .then(response => response.json())
-      .then(speciesData => {
-        const japaneseName = speciesData.names.find(n => n.language.name === "ja-Hrkt");
-        const englishName = speciesData.names.find(n => n.language.name === "en");
+      // 画像（null の場合は代替イラスト）
+      pokemonImage.src = data.sprites.front_default || "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
 
-        if (japaneseName) {
-          pokemonName.textContent = "？？？"; // クイズ用に隠す
-          answer.textContent = japaneseName.name;
-        } else {
-          pokemonName.textContent = "(日本語名なし)";
-          answer.textContent = "";
-        }
+      // 名前データ
+      const res2 = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonNumber}`);
+      const speciesData = await res2.json();
 
-        if (englishName){
-          pokemonNameEnglish.textContent = `English: ${englishName.name}`;
-        } else {
-          pokemonNameEnglish.textContent = "(英語名なし)";
-        }
+      // 日本語名（ja-Hrkt または ja）
+      let japaneseName = speciesData.names.find(n => n.language.name === "ja-Hrkt")
+                      || speciesData.names.find(n => n.language.name === "ja");
+      let englishName = speciesData.names.find(n => n.language.name === "en");
 
-        answer.style.display = "none"; // 新しいポケモンでは答え非表示
-      })
-      .catch(error => {
-        console.error(`エラーが発生しました: ${error}`);
-      });
+      if (japaneseName) {
+        pokemonName.textContent = "？？？"; // クイズ用
+        answer.textContent = japaneseName.name;
+      } else {
+        pokemonName.textContent = "(日本語名なし)";
+        answer.textContent = "";
+      }
+
+      if (englishName) {
+        pokemonNameEnglish.textContent = `English: ${englishName.name}`;
+      } else {
+        pokemonNameEnglish.textContent = "(英語名なし)";
+      }
+
+      answer.style.display = "none"; // 新しいポケモンでは答え非表示
+    } catch (error) {
+      console.error("エラー:", error);
+      pokemonName.textContent = "ポケモンが見つかりませんでした";
+    }
   }
 
   // 初回ロード
