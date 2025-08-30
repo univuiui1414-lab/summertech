@@ -51,6 +51,8 @@
       // 日本語名を探す
       const japaneseName = speciesData.names.find(n => n.language.name === "ja-Hrkt");
       const englishName = speciesData.names.find(n => n.language.name === "en");
+      console.log("English name data:", englishName);
+
       if (japaneseName) {
         pokemonName.textContent = japaneseName.name;
       } else {
