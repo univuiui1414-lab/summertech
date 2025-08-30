@@ -13,6 +13,7 @@
       font-size: 2.5em;
       color: #ff4500;
       text-shadow: 2px 2px 0px #fff;
+      animation: fadeInDown 1s ease-out;
     }
     #pokemon {
       width: 320px;
@@ -21,6 +22,7 @@
       border-radius: 20px;
       padding: 20px;
       box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+      animation: popIn 0.8s ease-out;
     }
     #pokemonName {
       font-size: 2em;
@@ -37,6 +39,8 @@
       background: #f0f8ff;
       border-radius: 15px;
       padding: 10px;
+      opacity: 0;                    /* ★ 初期は透明 */
+      transition: opacity 600ms ease-in; /* ★ フェードイン用 */
     }
     button {
       font-size: 1.2em;
@@ -47,19 +51,37 @@
       color: white;
       cursor: pointer;
       margin-top: 15px;
+      transition: transform 0.2s ease;
     }
-    button:hover {
-      background: #ff1493;
+    button:hover { background: #ff1493; transform: scale(1.05); }
+
+    /* ★ 答え表示・カード登場・ボタン弾み・名前ポップ用 */
+    #answer { margin-top: 10px; font-weight: bold; color: #ff4500; display: none; }
+    .reveal { display: block !important; animation: popIn 0.6s ease-out; } /* 答え用 */
+    .fade-in { opacity: 1 !important; }        /* 画像フェードイン */
+    .pop { animation: popIn 0.45s ease-out; }  /* 見出しのポップ */
+    .bounce { animation: bounce 0.35s ease-out; } /* ボタンの弾み */
+
+    /* ★ キーフレーム */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    #quiz {
-      margin-top: 20px;
-      font-size: 1.2em;
-      color: #333;
+    @keyframes popIn {
+      0%   { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
     }
-    #answer {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #ff4500;
+    @keyframes bounce {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(0.95); }
+      60%  { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+
+    /* ★ 動きを苦手とする環境への配慮（任意） */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+      #pokemonImage { opacity: 1; }
     }
   </style>
 </head>
@@ -79,7 +101,7 @@
       <br> このポケモンの名前はなんでしょう？
       <br>
       <button id="showAnswer">こたえをみる</button>
-      <p id="answer" style="display:none;"></p>
+      <p id="answer"></p>
     </div>
   </div>
 </main>
@@ -89,6 +111,8 @@
   const pokemonNameEnglish = document.getElementById('pokemonEnglishName');
   const pokemonImage = document.getElementById('pokemonImage');
   const answer = document.getElementById('answer');
+  const btnNew = document.getElementById('newPokemon');       // ★
+  const btnAnswer = document.getElementById('showAnswer');    // ★
 
   async function loadPokemon() {
     try {
@@ -98,33 +122,40 @@
       const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonNumber}`);
       const data = await res.json();
 
-      // 画像（null の場合は代替イラスト）
-      pokemonImage.src = data.sprites.front_default || "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
+      // ★ 画像はプリロードしてから差し替え → 毎回フェードイン
+      const url = data.sprites.front_default || "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
+      pokemonImage.classList.remove('fade-in');       // リセット
+      const pre = new Image();
+      pre.onload = () => {
+        pokemonImage.src = url;
+        // レイアウト確定後にフェードイン（再生を確実にするテクニック）
+        requestAnimationFrame(() => pokemonImage.classList.add('fade-in'));
+      };
+      pre.src = url;
 
       // 名前データ
       const res2 = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonNumber}`);
       const speciesData = await res2.json();
 
-      // 日本語名（ja-Hrkt または ja）
       let japaneseName = speciesData.names.find(n => n.language.name === "ja-Hrkt")
-                      || speciesData.names.find(n => n.language.name === "ja");
+                       || speciesData.names.find(n => n.language.name === "ja");
       let englishName = speciesData.names.find(n => n.language.name === "en");
 
       if (japaneseName) {
-        pokemonName.textContent = "？？？"; // クイズ用
+        pokemonName.textContent = "？？？"; // クイズ用に隠す
         answer.textContent = japaneseName.name;
       } else {
         pokemonName.textContent = "(日本語名なし)";
         answer.textContent = "";
       }
 
-      if (englishName) {
-        pokemonNameEnglish.textContent = `English: ${englishName.name}`;
-      } else {
-        pokemonNameEnglish.textContent = "(英語名なし)";
-      }
+      pokemonNameEnglish.textContent = englishName ? `English: ${englishName.name}` : "(英語名なし)";
 
-      answer.style.display = "none"; // 新しいポケモンでは答え非表示
+      // ★ 答えは非表示＆アニメーションの状態リセット
+      answer.classList.remove("reveal");
+      pokemonName.classList.remove("pop");
+      // 強制再計算で次回アニメを確実に再生
+      void pokemonName.offsetWidth;
     } catch (error) {
       console.error("エラー:", error);
       pokemonName.textContent = "ポケモンが見つかりませんでした";
@@ -134,11 +165,22 @@
   // 初回ロード
   loadPokemon();
 
-  // ボタンイベント
-  document.getElementById("newPokemon").addEventListener("click", loadPokemon);
-  document.getElementById("showAnswer").addEventListener("click", () => {
-    answer.style.display = "block";
+  // ★ ボタンの弾むアニメ
+  function bounceOnce(e) {
+    const btn = e.currentTarget;
+    btn.classList.remove('bounce');
+    void btn.offsetWidth;    // アニメ再始動の小技
+    btn.classList.add('bounce');
+  }
+  btnNew.addEventListener("click", (e) => { bounceOnce(e); loadPokemon(); });
+  btnAnswer.addEventListener("click", (e) => {
+    bounceOnce(e);
+    // 答え表示（名前見出しをポップ表示）
+    answer.classList.add("reveal");
     pokemonName.textContent = answer.textContent;
+    pokemonName.classList.remove("pop");
+    void pokemonName.offsetWidth; // 再始動
+    pokemonName.classList.add("pop");
   });
 </script>
 
