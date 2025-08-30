@@ -101,6 +101,7 @@
       <br> このポケモンの名前はなんでしょう？
       <br>
       <button id="showAnswer">こたえをみる</button>
+      <p id="answer"></p>
     </div>
   </div>
 </main>
@@ -141,12 +142,13 @@
       let englishName = speciesData.names.find(n => n.language.name === "en");
 
       if (japaneseName) {
-        pokemonName.textContent = "？？？"; // クイズ用に隠す
-        answer.textContent = japaneseName.name;
-      } else {
-        pokemonName.textContent = "(日本語名なし)";
-        answer.textContent = "";
-      }
+      pokemonName.textContent = "？？？"; // 最初は隠す
+      pokemonName.dataset.answer = japaneseName.name;
+     } else {
+      pokemonName.textContent = "(日本語名なし)";
+      pokemonName.dataset.answer = "";
+    }
+
 
       pokemonNameEnglish.textContent = englishName ? `English: ${englishName.name}` : "(英語名なし)";
 
@@ -173,14 +175,13 @@
   }
   btnNew.addEventListener("click", (e) => { bounceOnce(e); loadPokemon(); });
   btnAnswer.addEventListener("click", (e) => {
-    bounceOnce(e);
-    // 答え表示（名前見出しをポップ表示）
-    answer.classList.add("reveal");
-    pokemonName.textContent = answer.textContent;
-    pokemonName.classList.remove("pop");
-    void pokemonName.offsetWidth; // 再始動
-    pokemonName.classList.add("pop");
-  });
+  bounceOnce(e);
+  // 答え表示（名前見出しをポップ表示）
+  pokemonName.textContent = pokemonName.dataset.answer || "？？？";
+  pokemonName.classList.remove("pop");
+  void pokemonName.offsetWidth; // 再始動
+  pokemonName.classList.add("pop");
+});
 </script>
 
 </body>
