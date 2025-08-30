@@ -1,30 +1,69 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <title>Example Website</title>
-  <meta charset="UTF-8">
+  <title>数当てゲーム</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" >
   <style>
-    h1 {
-        color:grey;
+    #guessGame {
+      margin: 20px;
     }
-    a {
-        font-weight: bold;
+
+    #guessGame input {
+      width: 200px;
     }
-    </style>
+  </style>
 </head>
 <body>
 
-<h1>Example Website</h1>
+<main class="container">
+  <h1>数当てゲーム (1~100)</h1>
+  
+  <div id="guessGame">
+    <label for="guessField">予想: </label>
+    <input type="number" min="1" max="100" id="guessField">
+    <input type="submit" value="予想を入力" id="guessSubmit">
+    <p id="guessResult"></p>
+  </div>
+</main>
 
-<p>これはウェブサイトです。</p>
+<script>
+  // 1から20までのランダムな整数を生成し、コンソールにログを出力
+  let answerNumber = Math.floor(Math.random() * 100) + 1;
+  console.log('正解は' + answerNumber);
 
-<ul>
-  <li><a href="https://www.google.com/">Google</a></li>
-  <li><a href="https://www.yahoo.co.jp/">Yahoo! JAPAN</a></li>
-</ul>
+  let challengeCocunt = 0;
 
-<img src="1562.png" alt="笑顔のコンピューター">
+  // 数値入力フィールドを取得
+  let guessField = document.querySelector('#guessField');
+
+  // submitボタンを取得
+  let guessSubmit = document.querySelector('#guessSubmit');
+
+  // 結果を表示する要素を取得
+  let guessResult = document.querySelector('#guessResult');
+
+  // ユーザーの入力をチェックし、結果を表示
+  function checkGuess() {
+    challengeCount++;
+    // ユーザの入力した値を取得
+    let userGuess = Number(guessField.value);
+
+    if (userGuess === answerNumber) { // ユーザの入力が正解
+      guessResult.textContent = '正解です！';
+    } else if (userGuess < answerNumber) { // ユーザの入力が正解より小さい
+      guessResult.textContent = 'もっと大きいです';
+    } else if (userGuess > answerNumber) { // ユーザの入力が正解より大きい
+      guessResult.textContent = 'もっと小さいです';
+
+    if (challengeCount >=5 && userGuess !== answerNumber){
+        guessResult.textContent ='Game Over!!'
+    }
+    }
+  }
+
+  // submitがクリックされたときに、checkGuess関数を呼び出す
+  guessSubmit.addEventListener('click', checkGuess);
+</script>
 
 </body>
 </html>
