@@ -4,14 +4,18 @@
   <title>ポケモンクイズ</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
   <style>
-    body {
-      width: 100vw;
-      height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #ffefd5, #ffe4e1);
-      text-align: center;
-      font-family: "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
-    }
+    html, body {
+  height: 100%;      /* 高さを画面いっぱいに */
+  margin: 0;         /* デフォルト余白を消す */
+}
+body {
+  display: flex;              /* Flexbox にする */
+  justify-content: center;    /* 横方向中央 */
+  align-items: center;        /* 縦方向中央 */
+  background: linear-gradient(135deg, #ffefd5, #ffe4e1);
+  font-family: "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
+  text-align: center;         /* 残してもOK */
+}
     h1 {
       font-size: 2.5em;
       color: #ff4500;
